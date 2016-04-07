@@ -24,4 +24,40 @@ genList() {
   done
 }
 
-genList
+getVideo() {
+  while read link name; do
+    html=$(GET -O - "$link")
+    html=${html#*microohvideo};
+    video=${html#*src=\"}; video=${video%%\"*}
+    videoName=$(echo "$name.mp4" | sed "s/ /_/g")
+    GET -O "$videoName" "$video"
+    gdrive upload -p $FID "$videoName"
+    rm "$videoName"
+  done
+}
+
+getCourse() {
+  cat course.txt | while read link img title; do
+    imgName=$(echo "$title.jpg" | sed "s/ /_/g")
+    GET -O "$imgName" "$img"
+    gdrive upload -p $FID "$imgName"
+    rm "$imgName"
+    
+    html=$(GET -O - "$link" | sed "s/&nbsp;/ /g")
+
+    html=${html#*playlist}; html=${html%%mc-interact*}
+    data=${html#*href=\"}
+
+    while [ "$data" != "$html" ]; do
+      link="http://www.maiziedu.com${data%%\"*}"
+      lesson=${data#*>}; lesson=${lesson%%<*}
+      echo "$link $title-$lesson"
+
+      html="$data"
+      data=${html#*href=\"}
+    done | getVideo
+  done
+}
+
+#genList
+getCourse
