@@ -26,11 +26,15 @@ genList() {
 
 getVideo() {
   while read link name; do
+    videoName=$(echo "$name.mp4" | sed "s/ /_/g")
+    isExists=$(gdrive list -q "trashed = false and '$FID' in parents and name = '$videoName'" | wc -l)
+    if [ $isExists != 1 ]; then continue; fi
+
     html=$(GET -O - "$link")
     html=${html#*microohvideo};
     video=${html#*src=\"}; video=${video%%\"*}
-    videoName=$(echo "$name.mp4" | sed "s/ /_/g")
-    GET -O "$videoName" "$video"
+
+    GET -c -O "$videoName" "$video"
     gdrive upload -p $FID "$videoName"
     rm "$videoName"
   done
