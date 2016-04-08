@@ -15,12 +15,15 @@
   <div id="history">
   </div>
 <script>
-var conn = new Strophe.Connection("http://koobii.im.shoait.com:9090/http-bind/");
+var conn = new Strophe.Connection("http://koobii.im.shoait.com:7070/http-bind/");
 var $history = $("#history");
 var MESSAGE = {
   LOGIN: $pres()
     .c('priority').t(1).up()
-     .c('status').t('Online').up()
+     .c('status').t('Online').up(),
+  TEXT: function(jid, msg) {
+    return $msg({to: jid, type: 'chat'}).c('body').t(msg);
+  }
 }
 
 $("#login").on('click', function() {
@@ -28,12 +31,16 @@ $("#login").on('click', function() {
 });
 
 $("#send").on('click', function() {
-  conn.send();
+  conn.send(MESSAGE.TEXT($("#to").val(), $("#msg").val()));
+  $history.append('<div>'+$('#jid').val()+': '+$("#msg").val()+'</div>');
 });
 
 function xmlInput(data) {
   $(data).find('message').each(function(i, msg) {
-    console.log(msg);
+    var $msg = $(msg);
+    var from = $msg.attr('from');
+    var text = $msg.find('body')[0].innerHTML;
+    $history.append('<div>'+from+': '+text+'</div>');
   });
 }
 
