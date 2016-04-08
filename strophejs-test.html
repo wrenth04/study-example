@@ -1,0 +1,69 @@
+<html>
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-beta1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/strophe.js/1.2.5/strophe.min.js"></script>
+</head>
+<body>
+  <input id="jid" placeholder="jid" />
+  <input id="password" placeholder="password" />
+  <button id="login">login</button>
+  <br />
+  <input id="to" placeholder="to" />
+  <input id="msg" placeholder="msg" />
+  <button id="send">send</button>
+  <br />
+  <div id="history">
+  </div>
+<script>
+var conn = new Strophe.Connection("http://koobii.im.shoait.com:9090/http-bind/");
+var $history = $("#history");
+var MESSAGE = {
+  LOGIN: $pres()
+    .c('priority').t(1).up()
+     .c('status').t('Online').up()
+}
+
+$("#login").on('click', function() {
+  conn.connect($('#jid').val(), $('#password').val(), onConnect);
+});
+
+$("#send").on('click', function() {
+  conn.send();
+});
+
+function xmlInput(data) {
+  $(data).find('message').each(function(i, msg) {
+    console.log(msg);
+  });
+}
+
+function xmlOutput(data) {
+  console.log(data);
+}
+
+function onConnect(status) {
+  var s = Strophe.Status;
+  var html;
+  switch(status) {
+    case s.CONNECTED:
+      conn.send(MESSAGE.LOGIN);
+      conn.xmlInput = xmlInput;
+      conn.xmlOutput = xmlOutput;
+      html = 'connected';
+      break;
+    case s.DISCONNECTED:
+      html = 'disconnected';
+      break;
+    case s.AUTHFAIL:
+      html = 'jid or password error';
+      break;
+  }
+
+  if(html) {
+      $history.append('<div>'+html+'</div>');
+  }
+}
+
+</script>
+</body>
+</html>
