@@ -39,7 +39,7 @@ get_video() {
 }
 
 get_course() {
-  while read course_link img title; do
+  cat course.txt | while read course_link img title; do
     img_name=$(echo "$title.jpg" | sed "s/ /_/g")
     GET -O "$img_name" "$img"
     gdrive upload -p $FID "$img_name"
@@ -61,4 +61,5 @@ get_course() {
   done
 }
 
-gen_list | get_course
+#gen_list
+get_course
