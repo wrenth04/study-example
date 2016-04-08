@@ -1,12 +1,10 @@
 #!/bin/bash
 
-#http://www.maiziedu.com/course/list/?catagory=all&career=all&sort_by=new
-
 GET() {
   wget -U "Mozilla" $@
 }
 
-genList() {
+gen_list() {
   for page in {1..31}; do
     echo "LOG >> get page $page"
     url="http://www.maiziedu.com/course/list/?catagory=all&career=all&sort_by=new&page=$page"
@@ -24,44 +22,43 @@ genList() {
   done
 }
 
-getVideo() {
-  while read link name; do
-    videoName=$(echo "$name.mp4" | sed "s/ /_/g")
-    isExists=$(gdrive list -q "trashed = false and '$FID' in parents and name = '$videoName'" | wc -l)
-    if [ $isExists != 1 ]; then continue; fi
+get_video() {
+  while read video_link name; do
+    video_name=$(echo "$name.mp4" | sed "s/ /_/g")
+    is_exists=$(gdrive list -q "trashed = false and '$FID' in parents and name = '$video_name'" | wc -l)
+    if [ $is_exists != 1 ]; then continue; fi
 
-    html=$(GET -O - "$link")
+    html=$(GET -O - "$video_link")
     html=${html#*microohvideo};
     video=${html#*src=\"}; video=${video%%\"*}
 
-    GET -c -O "$videoName" "$video"
-    gdrive upload -p $FID "$videoName"
-    rm "$videoName"
+    GET -c -O "$video_name" "$video"
+    gdrive upload -p $FID "$video_name"
+    rm "$video_name"
   done
 }
 
-getCourse() {
-  cat course.txt | while read link img title; do
-    imgName=$(echo "$title.jpg" | sed "s/ /_/g")
-    GET -O "$imgName" "$img"
-    gdrive upload -p $FID "$imgName"
-    rm "$imgName"
+get_course() {
+  while read course_link img title; do
+    img_name=$(echo "$title.jpg" | sed "s/ /_/g")
+    GET -O "$img_name" "$img"
+    gdrive upload -p $FID "$img_name"
+    rm "$img_name"
     
-    html=$(GET -O - "$link" | sed "s/&nbsp;/ /g")
+    html=$(GET -O - "$course_link" | sed "s/&nbsp;/ /g")
 
     html=${html#*playlist}; html=${html%%mc-interact*}
     data=${html#*href=\"}
 
     while [ "$data" != "$html" ]; do
-      link="http://www.maiziedu.com${data%%\"*}"
+      lesson_link="http://www.maiziedu.com${data%%\"*}"
       lesson=${data#*>}; lesson=${lesson%%<*}
-      echo "$link $title-$lesson"
+      echo "$lesson_link $title-$lesson"
 
       html="$data"
       data=${html#*href=\"}
-    done | getVideo
+    done | get_video
   done
 }
 
-#genList
-getCourse
+gen_list | get_course
