@@ -5,7 +5,7 @@ GET() {
 }
 
 gen_list() {
-  for page in {1..31}; do
+  for page in {1..32}; do
     echo "LOG >> get page $page"
     url="http://www.maiziedu.com/course/list/?catagory=all&career=all&sort_by=new&page=$page"
     html=$(GET -O - "$url"); html=${html#*zy_course_list}
@@ -41,9 +41,12 @@ get_video() {
 get_course() {
   cat course.txt | while read course_link img title; do
     img_name=$(echo "$title.jpg" | sed "s/ /_/g")
-    GET -O "$img_name" "$img"
-    gdrive upload -p $FID "$img_name"
-    rm "$img_name"
+    is_exists=$(gdrive list -q "trashed = false and '$FID' in parents and name = '$img_name'" | wc -l)
+    if [ $is_exists = 1 ]; then
+      GET -O "$img_name" "$img"
+      gdrive upload -p $FID "$img_name"
+      rm "$img_name"
+    fi
     
     html=$(GET -O - "$course_link" | sed "s/&nbsp;/ /g")
 
