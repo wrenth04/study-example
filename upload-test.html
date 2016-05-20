@@ -1,0 +1,41 @@
+<html>
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <s-upload>loading</s-upload>
+  </div>
+
+<script>
+angular
+  .module('app', [])
+  .component('sUpload', {
+    template: `
+ <form name="uploadForm" id="uploadForm">
+   <input name="file" type="file" />
+   <button ng-click="$ctrl.submit()"> send </button>
+ </form>
+ {{$ctrl.result | json}}
+`,
+   controller: ['$http', '$timeout', function($http, $timeout) {
+     var self = this;
+     this.submit = function() {
+       var fd = new FormData(document.getElementById('uploadForm'));
+       $http.post('http://210.61.12.144:8080/api/uploads/appFile', fd, {
+         transformRequest: angular.identity,
+         headers: {'Content-Type': undefined, token: '7be9ea011ba68535e35521ffae86bcbe'}
+       }).success(function(data) {
+         $timeout(function() {
+           self.result = data;
+         });
+       });
+     }
+   }]
+  });
+    
+angular.bootstrap(document.getElementById('app'), ['app']);
+</script>
+
+</body>
+</html>
